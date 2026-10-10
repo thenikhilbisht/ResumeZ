@@ -61,3 +61,13 @@ def test_unknown_route_returns_custom_404():
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
+
+
+def test_database_check_endpoint():
+    response = client.get("/db-check")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "database_connected": True,
+        "message": "Database query successful",
+    }

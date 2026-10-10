@@ -1,4 +1,9 @@
+
 from fastapi import APIRouter
+from fastapi import Depends
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from app.core.database import get_db
 
 from app.core.config import settings
 from app.schemas.responses import (
@@ -62,4 +67,14 @@ def validate_resume_request(payload: ResumeRequest):
         "full_name": payload.full_name,
         "target_role": payload.target_role,
         "skills_count": len(payload.skills),
+    }
+
+
+@router.get("/db-check")
+def database_check(db: Session = Depends(get_db)):
+    result = db.execute(text("SELECT 1")).scalar_one()
+
+    return {
+        "database_connected": result == 1,
+        "message": "Database query successful",
     }
