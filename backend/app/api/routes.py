@@ -4,7 +4,8 @@ from fastapi import Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-
+from app.models import Resume
+from app.schemas.resume import ResumeCreate, ResumeResponse
 from app.core.config import settings
 from app.schemas.responses import (
     HomeResponse,
@@ -78,3 +79,34 @@ def database_check(db: Session = Depends(get_db)):
         "database_connected": result == 1,
         "message": "Database query successful",
     }
+
+
+@router.post(
+    f"{settings.api_v1_prefix}/resumes",
+    response_model=ResumeResponse,
+    status_code=201,
+)
+
+def create_resume(
+    payload: ResumeCreate,
+    db: Session = Depends(get_db),
+):
+    resume = Resume(
+        title=payload.title,
+        target_job=payload.target_job,
+        resume_data=payload.resume_data,
+    )
+
+    db.add(resume)
+    db.commit()
+    db.refresh(resume)
+
+    return resume
+
+
+@router.get(
+    f"{settings.api_v1_prefix}/resumes",
+    response_model=list[ResumeResponse],
+)
+def list_resumes(db: Session = Depends(get_db)):
+    return db.query(Resume).order_by(Resume.id.desc()).all()
