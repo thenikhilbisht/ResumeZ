@@ -1,18 +1,11 @@
-
-from fastapi import APIRouter
-from fastapi import Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+
+from app.core.config import settings
 from app.core.database import get_db
 from app.models import Resume
 from app.schemas.resume import ResumeCreate, ResumeResponse
-from app.core.config import settings
-from app.schemas.responses import (
-    HomeResponse,
-    HealthResponse,
-    InfoResponse,
-)
-
 from app.schemas.responses import (
     HomeResponse,
     HealthResponse,
@@ -110,3 +103,54 @@ def create_resume(
 )
 def list_resumes(db: Session = Depends(get_db)):
     return db.query(Resume).order_by(Resume.id.desc()).all()
+
+
+@router.put(
+    f"{settings.api_v1_prefix}/resumes/{{resume_id}}",
+    response_model=ResumeResponse,
+)
+def update_resume(
+    resume_id: int,
+    payload: ResumeCreate,
+    db: Session = Depends(get_db),
+):
+    resume = db.get(Resume, resume_id)
+
+    if resume is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Resume not found",
+        )
+
+    resume.title = payload.title
+    resume.target_job = payload.target_job
+    resume.resume_data = payload.resume_data
+
+    db.commit()
+    db.refresh(resume)
+
+    return resume
+
+
+@router.delete(
+    f"{settings.api_v1_prefix}/resumes/{{resume_id}}",
+)
+def delete_resume(
+    resume_id: int,
+    db: Session = Depends(get_db),
+):
+    resume = db.get(Resume, resume_id)
+
+    if resume is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Resume not found",
+        )
+
+    db.delete(resume)
+    db.commit()
+
+    return {
+        "message": "Resume deleted successfully",
+        "resume_id": resume_id,
+    }
