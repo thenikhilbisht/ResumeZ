@@ -1,5 +1,4 @@
-
-from datetime import datetime
+﻿from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -11,15 +10,8 @@ class ResumeCreate(BaseModel):
         min_length=1,
         max_length=150,
     )
-
-    target_job: str | None = Field(
-        default=None,
-        max_length=150,
-    )
-
-    resume_data: dict[str, Any] = Field(
-        default_factory=dict,
-    )
+    target_job: str | None = Field(default=None, max_length=150)
+    resume_data: dict[str, Any] = Field(default_factory=dict)
 
 
 class ResumeResponse(BaseModel):

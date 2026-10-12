@@ -16,7 +16,8 @@ class Settings(BaseSettings):
 
     database_url: str = ""
     gemini_api_key: SecretStr = SecretStr("")
-
+    jwt_secret_key: SecretStr = SecretStr("")
+    
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
